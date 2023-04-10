@@ -66,6 +66,10 @@ public:
                                               "parameters",
                                               createParameterLayout()};
 
+    void updateLowCutFilters(const ChainSettings& chainSettings);
+    void updateHighCutFilters(const ChainSettings& chainSettings);
+    void updateFilters();
+
 private:
     using Filter = juce::dsp::IIR::Filter<float>;
 
@@ -79,7 +83,7 @@ private:
 
     enum ChainPositions
     {
-        Lowcut,
+        LowCut,
         Peak,
         HighCut
     };
