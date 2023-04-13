@@ -22,18 +22,30 @@ public:
     void paint (juce::Graphics&) override;
     void resized() override;
 
+    CustomRotarySlider peakFreqSlider,
+                       peakGainSlider,
+                       peakQualitySlider,
+                       lowCutFreqSlider,
+                       highCutFreqSlider,
+                       lowCutSlopeSlider,
+                       highCutSlopeSlider;
+
+    using APVTS = juce::AudioProcessorValueTreeState;
+    using Attachment = APVTS::SliderAttachment;
+
+    Attachment peakFreqSliderAttachment,
+               peakGainSliderAttachment,
+               peakQualitySliderAttachment,
+               lowCutFreqSliderAttachment,
+               highCutFreqSliderAttachment,
+               lowCutSlopeSliderAttachment,
+               highCutSlopeSliderAttachment;
+
 private:
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     AudioPluginAudioProcessor& processorRef;
 
-    CustomRotarySlider peakFreqSlider,
-                       peakGainSlider,
-                       PeakQualitySlider,
-                       lowCutFreqSlider,
-                       highCutFreqSlider,
-                       lowCutSlopeSlider,
-                       highCutSlopeSlider;
 
     std::vector<juce::Component*> getComps();
 

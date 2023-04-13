@@ -3,7 +3,14 @@
 
 //==============================================================================
 AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor (AudioPluginAudioProcessor& p)
-    : AudioProcessorEditor (&p), processorRef (p)
+    : AudioProcessorEditor (&p), processorRef (p),
+      peakFreqSliderAttachment(p.apvts, "Peak Freq", peakFreqSlider),
+      peakGainSliderAttachment(p.apvts, "Peak Gain", peakGainSlider),
+      peakQualitySliderAttachment(p.apvts, "Peak Quality", peakQualitySlider),
+      lowCutFreqSliderAttachment(p.apvts, "LowCut Freq", lowCutFreqSlider),
+      highCutFreqSliderAttachment(p.apvts, "HighCut Freq", highCutFreqSlider),
+      lowCutSlopeSliderAttachment(p.apvts, "LowCut Slope", lowCutSlopeSlider),
+      highCutSlopeSliderAttachment(p.apvts, "HighCut Slope", highCutSlopeSlider)
 {
     juce::ignoreUnused (processorRef);
     // Make sure that before the constructor has finished, you've set the
@@ -46,7 +53,7 @@ void AudioPluginAudioProcessorEditor::resized()
 
     peakFreqSlider.setBounds(bounds.removeFromTop(bounds.getHeight() * 0.33f));
     peakGainSlider.setBounds(bounds.removeFromTop(bounds.getHeight() * 0.5f));
-    PeakQualitySlider.setBounds(bounds);
+    peakQualitySlider.setBounds(bounds);
 }
 
 std::vector<juce::Component*> AudioPluginAudioProcessorEditor::getComps()
@@ -55,7 +62,7 @@ std::vector<juce::Component*> AudioPluginAudioProcessorEditor::getComps()
     {
         &peakFreqSlider,
         &peakGainSlider,
-        &PeakQualitySlider,
+        &peakQualitySlider,
         &lowCutFreqSlider,
         &highCutFreqSlider,
         &lowCutSlopeSlider,
