@@ -38,7 +38,63 @@ ChainSettings getChainSettings(juce::AudioProcessorValueTreeState& apvts);
     using Coefficients = juce::dsp::IIR::Filter<float>::CoefficientsPtr;
     void updateCoefficients(Coefficients& old, const Coefficients& replacements);
 
-    Coefficients makePeakFilter(const ChainSettings ChainSettings, double sampleRate);
+    Coefficients makePeakFilter(const ChainSettings chainSettings, double sampleRate);
+
+    template<int Index, typename ChainType, typename CoefficientType>
+    void updateChain(ChainType& chain,
+                     const CoefficientType& coefficients)
+    {
+        updateCoefficients(chain.template get<Index>().coefficients, coefficients[Index]);
+        chain.template setBypassed<Index>(false);
+    }
+
+    template<typename ChainType, typename CoefficientType>
+    void updateCutFilter(ChainType& chain,
+                         const CoefficientType& cutCoefficients,
+                         const Slope& cutSlope)
+    {
+        chain.template setBypassed<0>(true);
+        chain.template setBypassed<1>(true);
+        chain.template setBypassed<2>(true);
+        chain.template setBypassed<3>(true);
+
+        switch(cutSlope)
+        {
+            case  Slope_48:
+            {
+                updateChain<3>(chain, cutCoefficients);
+            }
+            case Slope_36:
+            {
+                updateChain<2>(chain, cutCoefficients);
+            }
+            case Slope_24:
+            {
+                updateChain<1>(chain, cutCoefficients);
+            }
+            case Slope_12:
+            {
+                updateChain<0>(chain, cutCoefficients);
+            }
+            break;
+        };
+    };
+
+inline auto makeLowCutFilter(const ChainSettings chainSettings, double sampleRate)
+{
+    return juce::dsp::FilterDesign<float>
+        ::designIIRHighpassHighOrderButterworthMethod(
+            chainSettings.lowCutFreq, sampleRate,
+            (chainSettings.lowCutSlope + 1) * 2);
+}
+
+inline auto makeHighCutFilter(const ChainSettings chainSettings, double sampleRate)
+{
+    return juce::dsp::FilterDesign<float>
+        ::designIIRLowpassHighOrderButterworthMethod(
+            chainSettings.highCutFreq, sampleRate,
+            (chainSettings.highCutSlope + 1) * 2);
+}
 
 //==============================================================================
 class AudioPluginAudioProcessor  : public juce::AudioProcessor
@@ -94,47 +150,6 @@ private:
     MonoChain leftChain, rightChain;
 
     void updatePeakFilter(const ChainSettings& chainSettings);
-    template<int Index, typename ChainType, typename CoefficientType>
-    void updateChain(ChainType& chain,
-                     const CoefficientType& coefficients)
-    {
-        updateCoefficients(chain.template get<Index>().coefficients, coefficients[Index]);
-        chain.template setBypassed<Index>(false);
-    }
-
-    template<typename ChainType, typename CoefficientType>
-    void updateCutFilter(ChainType& chain,
-                         const CoefficientType& cutCoefficients,
-                         const Slope& cutSlope)
-    {
-        chain.template setBypassed<0>(true);
-        chain.template setBypassed<1>(true);
-        chain.template setBypassed<2>(true);
-        chain.template setBypassed<3>(true);
-
-        switch(cutSlope)
-        {
-            case  Slope_48:
-            {
-                updateChain<3>(chain, cutCoefficients);
-            }
-            case Slope_36:
-            {
-                updateChain<2>(chain, cutCoefficients);
-            }
-            case Slope_24:
-            {
-                updateChain<1>(chain, cutCoefficients);
-            }
-            case Slope_12:
-            {
-                updateChain<0>(chain, cutCoefficients);
-            }
-            break;
-        };
-
-
-    };
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioPluginAudioProcessor)
 };
