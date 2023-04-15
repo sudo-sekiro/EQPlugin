@@ -35,6 +35,11 @@ ChainSettings getChainSettings(juce::AudioProcessorValueTreeState& apvts);
         HighCut
     };
 
+    using Coefficients = juce::dsp::IIR::Filter<float>::CoefficientsPtr;
+    void updateCoefficients(Coefficients& old, const Coefficients& replacements);
+
+    Coefficients makePeakFilter(const ChainSettings ChainSettings, double sampleRate);
+
 //==============================================================================
 class AudioPluginAudioProcessor  : public juce::AudioProcessor
 {
@@ -89,8 +94,6 @@ private:
     MonoChain leftChain, rightChain;
 
     void updatePeakFilter(const ChainSettings& chainSettings);
-    using Coefficients = juce::dsp::IIR::Filter<float>::CoefficientsPtr;
-    static void updateCoefficients(Coefficients& old, const Coefficients& replacements);
     template<int Index, typename ChainType, typename CoefficientType>
     void updateChain(ChainType& chain,
                      const CoefficientType& coefficients)
