@@ -1,6 +1,6 @@
-##Building instructions for Windows
+## Building instructions for Windows
 
-###Dependencies
+### Dependencies
 
 Install VS build tools and CMAKE
 ```
@@ -15,7 +15,7 @@ git clone https://github.com/juce-framework/JUCE.git
 Copy the ASIO SDK to SIMPLEEQ/asiosdk_*
 This can be downloaded from: https://www.steinberg.net/en/company/developers.html
 
-###Run Cmake:
+### Run Cmake:
 ```
 cmake -Bbuild (-GgeneratorName) (-DJUCE_BUILD_EXTRAS=ON) (-DJUCE_BUILD_EXAMPLES=ON)
 cmake --build build --config Debug --target AudioPluginExample_Standalone
