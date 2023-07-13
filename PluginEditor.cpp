@@ -127,6 +127,13 @@ void ResponseCurveComponent::paint (juce::Graphics& g)
 //==============================================================================
 AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor (AudioPluginAudioProcessor& p)
     : AudioProcessorEditor (&p), processorRef (p),
+      peakFreqSlider(*p.apvts.getParameter("Peak Freq"), "Hz"),
+      peakGainSlider(*p.apvts.getParameter("Peak Gain"), "dB"),
+      peakQualitySlider(*p.apvts.getParameter("Peak Quality"), ""),
+      lowCutFreqSlider(*p.apvts.getParameter("LowCut Freq"), "Hz"),
+      highCutFreqSlider(*p.apvts.getParameter("HighCut Freq"), "Hz"),
+      lowCutSlopeSlider(*p.apvts.getParameter("LowCut Slope"), "dB/Oct"),
+      highCutSlopeSlider(*p.apvts.getParameter("HighCut Slope"), "dB/Oct"),
       responseCurveComponent(p),
       peakFreqSliderAttachment(p.apvts, "Peak Freq", peakFreqSlider),
       peakGainSliderAttachment(p.apvts, "Peak Gain", peakGainSlider),
