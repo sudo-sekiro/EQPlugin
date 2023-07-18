@@ -20,26 +20,42 @@ void LookAndFeel::drawRotarySlider(juce::Graphics &g,
     g.setColour(Colour(255u, 154u, 1u));
     g.drawEllipse(bounds, 1.f);
 
-    auto center = bounds.getCentre();
+    // If we can cast from a slider to RotarySliderWithLabels then we can
+    // call the RotarySliderWithLabels methods.
+    if( auto* rswl = dynamic_cast<RotarySliderWithLabels*>(&slider))
+    {
+        auto center = bounds.getCentre();
+        Path p;
+        // Plot rotary slider in square
+        Rectangle<float> r;
 
-    Path p;
+        r.setLeft(center.getX() - 2);
+        r.setRight(center.getX() + 2);
+        r.setTop(bounds.getY());
+        r.setBottom(center.getY() - rswl->getTextHeight() * 1.5);
 
-    Rectangle<float> r;
+        p.addRoundedRectangle(r, 2.f);
 
-    r.setLeft(center.getX() - 2);
-    r.setRight(center.getX() + 2);
-    r.setTop(bounds.getY());
-    r.setBottom(center.getY());
+        jassert(rotaryStartAngle < rotaryEndAngle);
+        // Add and rotate indicator line
+        auto sliderAngRad = jmap(sliderPosProportional, 0.f, 1.f, rotaryStartAngle, rotaryEndAngle);
 
-    p.addRectangle(r);
+        p.applyTransform(AffineTransform().rotated(sliderAngRad, center.getX(), center.getY()));
 
-    jassert(rotaryStartAngle < rotaryEndAngle);
+        g.fillPath(p);
+        // Create bounding box for label
+        g.setFont(rswl->getTextHeight());
+        auto text = rswl->getDisplayString();
+        auto strWidth = g.getCurrentFont().getStringWidth(text);
 
-    auto sliderAngRad = jmap(sliderPosProportional, 0.f, 1.f, rotaryStartAngle, rotaryEndAngle);
-
-    p.applyTransform(AffineTransform().rotated(sliderAngRad, center.getX(), center.getY()));
-
-    g.fillPath(p);
+        r.setSize(strWidth + 4, rswl->getTextHeight() + 2);
+        r.setCentre(center);
+        g.setColour(Colours::black);
+        g.fillRect(r);
+        // Display slider value
+        g.setColour(Colours::white);
+        g.drawFittedText(text, r.toNearestInt(), juce::Justification::centred, 1);
+    }
 }
 //======================================================================
 void RotarySliderWithLabels::paint(juce::Graphics &g)
@@ -78,6 +94,11 @@ juce::Rectangle<int> RotarySliderWithLabels::getSliderBounds() const
     r.setCentre(bounds.getCentreX(), 0);
     r.setY(2);
     return r;
+}
+
+juce::String RotarySliderWithLabels::getDisplayString() const
+{
+    return juce::String(getValue());
 }
 
 //======================================================================
