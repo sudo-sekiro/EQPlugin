@@ -2,6 +2,7 @@
 
 #include "PluginProcessor.h"
 
+#define JUCE_LIVE_CONSTANT
 struct LookAndFeel : juce::LookAndFeel_V4
 {
             virtual void drawRotarySlider (juce::Graphics& g,
@@ -77,6 +78,8 @@ struct ResponseCurveComponent : juce::Component,
         AudioPluginAudioProcessor& processorRef;
         juce::Atomic<bool> parametersChanged { false };
         MonoChain monoChain;
+
+        void updateChain();
 };
 
 //==============================================================================
