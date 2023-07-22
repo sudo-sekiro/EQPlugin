@@ -82,6 +82,28 @@ void RotarySliderWithLabels::paint(juce::Graphics &g)
                                       startAng,
                                       endAng,
                                       *this);
+
+    auto center = sliderBounds.toFloat().getCentre();
+    auto radius = sliderBounds.toFloat().getHeight() / 2.f;
+    g.setColour(Colour(0u, 172u, 1u));
+    g.setFont(getTextHeight());
+    auto numChoices = labels.size();
+    for (int i = 0; i < numChoices; i++)
+    {
+        auto pos = labels[i].pos;
+        jassert(0.f <= pos);
+        jassert(pos <= 1.f);
+        auto ang = jmap(pos, 0.f, 1.f, startAng, endAng);
+        auto c = center.getPointOnCircumference(radius + getTextHeight() * 0.5 + 1,
+                                       ang);
+
+    Rectangle<float> r;
+    auto str = labels[i].label;
+    r.setSize(g.getCurrentFont().getStringWidth(str), getTextHeight());
+    r.setCentre(c);
+    r.setY(r.getY() + getTextHeight());
+    g.drawFittedText(str, r.toNearestInt(), juce::Justification::centred, 1);
+    }
 }
 
 juce::Rectangle<int> RotarySliderWithLabels::getSliderBounds() const
@@ -103,7 +125,7 @@ juce::String RotarySliderWithLabels::getDisplayString() const
         return choiceParam->getCurrentChoiceName();
 
     juce::String str;
-    // Whether to add K for KHz
+    // Whether to add K for kHz
     bool addK = false;
     // Return string for float parameters
     if( auto* floatParam = dynamic_cast<juce::AudioParameterFloat*>(param) )
@@ -114,7 +136,7 @@ juce::String RotarySliderWithLabels::getDisplayString() const
             val /= 1000.f;
             addK = true;
         }
-        // 2 decimal places for KHz otherwise default formwatting
+        // 2 decimal places for kHz otherwise default formwatting
         str = juce::String(val, (addK ? 2 : 0));
     }
     else
@@ -126,7 +148,7 @@ juce::String RotarySliderWithLabels::getDisplayString() const
         str << " ";
         if ( addK )
         {
-            str << "K";
+            str << "k";
         }
         str << suffix;
     }
@@ -276,6 +298,28 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor (AudioPluginAud
       lowCutSlopeSliderAttachment(p.apvts, "LowCut Slope", lowCutSlopeSlider),
       highCutSlopeSliderAttachment(p.apvts, "HighCut Slope", highCutSlopeSlider)
 {
+      // Add labels for max and min values
+      peakFreqSlider.labels.add({0.f, "20Hz"});
+      peakFreqSlider.labels.add({1.f, "20kHz"});
+
+      peakGainSlider.labels.add({0.f, "-24dB"});
+      peakGainSlider.labels.add({1.f, "24dB"});
+
+      peakQualitySlider.labels.add({0.f, "0.1"});
+      peakQualitySlider.labels.add({1.f, "10.0"});
+
+      lowCutFreqSlider.labels.add({0.f, "20Hz"});
+      lowCutFreqSlider.labels.add({1.f, "20kHz"});
+
+      highCutFreqSlider.labels.add({0.f, "20Hz"});
+      highCutFreqSlider.labels.add({1.f, "20kHz"});
+
+      lowCutSlopeSlider.labels.add({0.f, "12"});
+      lowCutSlopeSlider.labels.add({1.f, "48"});
+
+      highCutSlopeSlider.labels.add({0.f, "12"});
+      highCutSlopeSlider.labels.add({1.f, "48"});
+
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
     for (auto* comp : getComps())
