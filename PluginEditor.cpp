@@ -51,7 +51,7 @@ void LookAndFeel::drawRotarySlider(juce::Graphics &g,
         r.setSize(strWidth + 4, rswl->getTextHeight() + 2);
         r.setCentre(center);
         g.setColour(Colours::black);
-        g.fillRect(r);
+        // g.fillRect(r);
         // Display slider value
         g.setColour(Colours::white);
         g.drawFittedText(text, r.toNearestInt(), juce::Justification::centred, 1);
@@ -68,10 +68,10 @@ void RotarySliderWithLabels::paint(juce::Graphics &g)
 
     auto sliderBounds = getSliderBounds();
 
-    g.setColour(Colours::red);
-    g.drawRect(getLocalBounds());
-    g.setColour(Colours::yellow);
-    g.drawRect(sliderBounds);
+    // g.setColour(Colours::red);
+    // g.drawRect(getLocalBounds());
+    // g.setColour(Colours::yellow);
+    // g.drawRect(sliderBounds);
 
     getLookAndFeel().drawRotarySlider(g,
                                       sliderBounds.getX(),
@@ -98,7 +98,39 @@ juce::Rectangle<int> RotarySliderWithLabels::getSliderBounds() const
 
 juce::String RotarySliderWithLabels::getDisplayString() const
 {
-    return juce::String(getValue());
+    // Return choice name for choice sliders
+    if( auto* choiceParam = dynamic_cast<juce::AudioParameterChoice*>(param) )
+        return choiceParam->getCurrentChoiceName();
+
+    juce::String str;
+    // Whether to add K for KHz
+    bool addK = false;
+    // Return string for float parameters
+    if( auto* floatParam = dynamic_cast<juce::AudioParameterFloat*>(param) )
+    {
+        float val = getValue();
+        if ( val > 999.f )
+        {
+            val /= 1000.f;
+            addK = true;
+        }
+        // 2 decimal places for KHz otherwise default formwatting
+        str = juce::String(val, (addK ? 2 : 0));
+    }
+    else
+    {
+        jassertfalse; // Param not of type AudioParameterChoice or AudioParameterFloat
+    }
+    if ( suffix.isNotEmpty() )
+    {
+        str << " ";
+        if ( addK )
+        {
+            str << "K";
+        }
+        str << suffix;
+    }
+    return str;
 }
 
 //======================================================================
