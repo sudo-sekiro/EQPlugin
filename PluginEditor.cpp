@@ -222,7 +222,7 @@ void ResponseCurveComponent::paint (juce::Graphics& g)
 
     auto responseArea = getAnalysisArea();
     // Draw background grid image for plotting frequencies
-    g.drawImage(background, responseArea.toFloat());
+    g.drawImage(background, getLocalBounds().toFloat());
 
     auto w = responseArea.getWidth();
 
@@ -391,6 +391,7 @@ void ResponseCurveComponent::resized()
     // Draw gain labels
     for (auto gDb : gain)
     {
+        // Plot frequency labels for filter chain
         String str;
         auto y  = jmap(gDb, -24.f, 24.f, float(bottom), float(top));
 
@@ -400,6 +401,14 @@ void ResponseCurveComponent::resized()
         r.setSize(textWidth, fontHeight);
         r.setX(getWidth() - textWidth - 2);
         r.setCentre(r.getCentreX(), y);
+        g.drawFittedText(str, r, juce::Justification::centred, 1);
+
+        // Plot frequency labels for spectrum analyser
+        str.clear();
+        str << (gDb - 24.f);
+        r.setX(1);
+        textWidth = g.getCurrentFont().getStringWidth(str);
+        r.setSize(textWidth, fontHeight);
         g.drawFittedText(str, r, juce::Justification::centred, 1);
     }
 }
