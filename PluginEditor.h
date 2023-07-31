@@ -218,6 +218,7 @@ struct ResponseCurveComponent : juce::Component,
     void paint(juce::Graphics& g) override;
     void resized() override;
 
+    SingleChannelSampleFifo<AudioPluginAudioProcessor::BlockType>* leftChannelFifo;
     private:
         AudioPluginAudioProcessor& processorRef;
         juce::Atomic<bool> parametersChanged { false };
@@ -230,6 +231,14 @@ struct ResponseCurveComponent : juce::Component,
         juce::Rectangle<int> getRenderArea();
 
         juce::Rectangle<int> getAnalysisArea();
+
+        juce::AudioBuffer<float> monoBuffer;
+
+        FFTDataGenerator<std::vector<float>> leftChannelFFTDataGenerator;
+
+        AnalyzerPathGenerator<juce::Path> pathProducer;
+
+        juce::Path leftChannelFFTPath;
 };
 
 //==============================================================================
