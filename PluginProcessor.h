@@ -10,8 +10,11 @@
 template<typename T>
 struct Fifo
 {
+    // Prepare FIFO buffer using juce::AudioBuffer<float>
     void prepare(int numChannels, int numSamples)
     {
+        static_assert( std::is_same_v<T, juce::AudioBuffer<float>>,
+            "prepare(numChannels, numSamples) should only be used when the Fifo is holding juce::AudioBuffer<float>" );
         for ( auto& buffer : buffers)
         {
             buffer.setSize(numChannels,
@@ -20,6 +23,16 @@ struct Fifo
                            true,        // Include the extra space
                            true);       // Avoid reallocating if possible
             buffer.clear();
+        }
+    }
+    void prepare(size_t numElements)
+    {
+        static_assert( std::is_same_v<T, std::vector<float>>,
+            "prepare(numElements) should only be used when the Fifo is holding std::vector<float>" );
+        for ( auto& buffer : buffers)
+        {
+            buffer.clear();
+            buffer.resize(numElements, 0);
         }
     }
     bool push(const T& t)
@@ -268,6 +281,10 @@ public:
     void updateLowCutFilters(const ChainSettings& chainSettings);
     void updateHighCutFilters(const ChainSettings& chainSettings);
     void updateFilters();
+
+    using BlockType = juce::AudioBuffer<float>;
+    SingleChannelSampleFifo<BlockType> leftChannelFifo { Channel::Left };
+    SingleChannelSampleFifo<BlockType> rightChannelFifo { Channel::Right };
 
 private:
     MonoChain leftChain, rightChain;
