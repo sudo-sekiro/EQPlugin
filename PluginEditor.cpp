@@ -158,19 +158,14 @@ juce::String RotarySliderWithLabels::getDisplayString() const
 //======================================================================
 ResponseCurveComponent::ResponseCurveComponent(AudioPluginAudioProcessor& p) :
     processorRef(p),
-    leftChannelFifo(&p.leftChannelFifo)
+    leftPathProducer(p.leftChannelFifo),
+    rightPathProducer(p.rightChannelFifo)
 {
     const auto& params = processorRef.getParameters();
     for ( auto param : params )
     {
         param->addListener(this);
     }
-
-    /* If sample rate = 48000 and order = 2048 bins:
-     * 48000 / 2048 = 23Hz of resolution
-     */
-    leftChannelFFTDataGenerator.changeOrder(FFTOrder::order2048);
-    monoBuffer.setSize(1, leftChannelFFTDataGenerator.getFFTSize());
 
     updateChain();
 
@@ -193,12 +188,12 @@ void ResponseCurveComponent::parameterValueChanged(int parameterIndex, float new
     parametersChanged.set(true);
 }
 
-void ResponseCurveComponent::timerCallback()
+void PathProducer::process(juce::Rectangle<float> fftBounds, double sampleRate)
 {
     juce::AudioBuffer<float> tempIncomingBuffer;
-    while( leftChannelFifo->getNumCompleteBuffersAvailable() > 0)
+    while( singleChannelFifo->getNumCompleteBuffersAvailable() > 0)
     {
-        if( leftChannelFifo->getAudioBuffer(tempIncomingBuffer) )
+        if( singleChannelFifo->getAudioBuffer(tempIncomingBuffer) )
         {
             auto size = tempIncomingBuffer.getNumSamples();
             // Shift data forward by buffer size.
@@ -212,7 +207,7 @@ void ResponseCurveComponent::timerCallback()
                                               tempIncomingBuffer.getReadPointer(0, 0),
                                               size);
 
-            leftChannelFFTDataGenerator.produceFFTDataForRendering(monoBuffer, -48.f);
+            singleChannelFFTDataGenerator.produceFFTDataForRendering(monoBuffer, -48.f);
         }
     }
 
@@ -220,14 +215,14 @@ void ResponseCurveComponent::timerCallback()
             If we can pull a buffer
                 Produce a path
      */
-    const auto fftBounds = getAnalysisArea().toFloat();
-    const auto fftSize = leftChannelFFTDataGenerator.getFFTSize();
-    const auto binWidth = processorRef.getSampleRate() / (double)fftSize;
+    // const auto fftBounds = getAnalysisArea().toFloat();
+    const auto fftSize = singleChannelFFTDataGenerator.getFFTSize();
+    const auto binWidth = sampleRate / (double)fftSize;
 
-    while( leftChannelFFTDataGenerator.getNumAvailableFFTDataBlocks() > 0 )
+    while( singleChannelFFTDataGenerator.getNumAvailableFFTDataBlocks() > 0 )
     {
         std::vector<float> fftData;
-        if( leftChannelFFTDataGenerator.getFFTData(fftData))
+        if( singleChannelFFTDataGenerator.getFFTData(fftData))
         {
             pathProducer.generatePath(fftData, fftBounds, fftSize, binWidth, -48.f);
         }
@@ -237,11 +232,18 @@ void ResponseCurveComponent::timerCallback()
         Pull as many as possible
             Only display most recent
      */
-
     while(pathProducer.getNumPathsAvailable() > 0)
     {
-        pathProducer.getPath(leftChannelFFTPath);
+        pathProducer.getPath(singleChannelFFTPath);
     }
+}
+
+void ResponseCurveComponent::timerCallback()
+{
+    auto fftBounds = getAnalysisArea().toFloat();
+    auto sampleRate = processorRef.getSampleRate();
+    leftPathProducer.process(fftBounds, sampleRate);
+    rightPathProducer.process(fftBounds, sampleRate);
 
     if( parametersChanged.compareAndSetBool(false, true) )
     {
@@ -334,11 +336,17 @@ void ResponseCurveComponent::paint (juce::Graphics& g)
     {
         responseCurve.lineTo(responseArea.getX() + i, map(mags[i]));
     }
-
+    auto leftChannelFFTPath = leftPathProducer.getPath();
     leftChannelFFTPath.applyTransform(AffineTransform().translation(responseArea.getX(), responseArea.getY() ));
 
     g.setColour(Colours::skyblue);
     g.strokePath(leftChannelFFTPath, PathStrokeType(1.f));
+
+    auto rightChannelFFTPath = rightPathProducer.getPath();
+    rightChannelFFTPath.applyTransform(AffineTransform().translation(responseArea.getX(), responseArea.getY() ));
+
+    g.setColour(Colours::lightyellow);
+    g.strokePath(rightChannelFFTPath, PathStrokeType(1.f));
 
     g.setColour(Colours::orange);
     g.drawRoundedRectangle(getRenderArea().toFloat(), 4.f, 1.f);
