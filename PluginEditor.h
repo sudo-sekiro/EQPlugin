@@ -296,6 +296,13 @@ private:
     // access the processor object that created it.
     AudioPluginAudioProcessor& processorRef;
 
+    juce::ToggleButton lowCutBypassButton, highCutBypassButton, peakBypassButton, analyserBypassButton;
+
+    using ButtonAttachment = APVTS::ButtonAttachment;
+    ButtonAttachment lowCutBypassButtonAttachment,
+                     highCutBypassButtonAttachment,
+                     peakBypassButtonAttachment,
+                     analyserBypassButtonAttachment;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioPluginAudioProcessorEditor)
 };
