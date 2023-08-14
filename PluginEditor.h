@@ -262,6 +262,8 @@ struct ResponseCurveComponent : juce::Component,
         PathProducer leftPathProducer, rightPathProducer;
 };
 
+struct PowerButton : juce::ToggleButton { };
+struct AnalyserButton : juce::ToggleButton { };
 //==============================================================================
 class AudioPluginAudioProcessorEditor : public juce::AudioProcessorEditor
 {
@@ -301,7 +303,8 @@ private:
     // access the processor object that created it.
     AudioPluginAudioProcessor& processorRef;
 
-    juce::ToggleButton lowCutBypassButton, highCutBypassButton, peakBypassButton, analyserBypassButton;
+    PowerButton lowCutBypassButton, highCutBypassButton, peakBypassButton;
+    AnalyserButton analyserBypassButton;
 
     using ButtonAttachment = APVTS::ButtonAttachment;
     ButtonAttachment lowCutBypassButtonAttachment,
