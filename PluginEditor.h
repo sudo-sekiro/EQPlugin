@@ -246,6 +246,10 @@ struct ResponseCurveComponent : juce::Component,
     void paint(juce::Graphics& g) override;
     void resized() override;
 
+    void toggleAnalysisBypass(bool bypassed)
+    {
+        showFFTAnalysis = bypassed;
+    }
     private:
         AudioPluginAudioProcessor& processorRef;
         juce::Atomic<bool> parametersChanged { false };
@@ -260,6 +264,8 @@ struct ResponseCurveComponent : juce::Component,
         juce::Rectangle<int> getAnalysisArea();
 
         PathProducer leftPathProducer, rightPathProducer;
+
+        bool showFFTAnalysis = true;
 };
 
 struct PowerButton : juce::ToggleButton { };
@@ -282,7 +288,6 @@ struct AnalyserButton : juce::ToggleButton
             randomPath.lineTo(x,
                               insetRect.getY() + insetRect.getHeight() * r.nextFloat());
         }
-
     }
     juce::Path randomPath;
 };
